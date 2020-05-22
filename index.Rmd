@@ -1,0 +1,82 @@
+---
+title: "Report on Mass Shootings"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(plotly)
+library(dplyr)
+library(stringr)
+library(knitr)
+source("analysis.R")
+```
+
+```{r link, echo = FALSE}
+given_website <- paste0("[this website](", original_website, ")")
+```
+## Overview
+  Data on the mass shootings that happened in the United States in 2018 has
+been compiled on `r given_website`.Throughout 2018, there 
+was a total of `r total_shootings` mass shootings. There were `r total_lives_lost`
+people who lost their lives during all of these shootings. The city that was the 
+most impacted was `r most_impacted_city`, as compared by the number of lives lost. 
+`r most_impacted_city` lost `r city_w_most_killed` lives during the Parkland Shooting on `r most_impacted_date`. In 2018, `r state_w_most_killed` was the state with the most lives lost due to shootings. During that year, `r num_killed_state_most_killed` people were killed in shootings throughout the state. Over the course of the entire year, `r total_injured` people were injured from all of the shootings.
+
+```{r news link, echo = FALSE}
+url <- "https://www.dallasnews.com/news/2018/05/17/ponder-woman-survives-shooting-in-which-police-say-her-ex-husband-killed-her-boyfriend-and-3-kids/"
+external_website <- paste0("[Dallas News](", url, ")")
+```
+  This table below shows the total lives lost, total people injured, and total number of mass shootings for each state during 2018. The top 5 states that had the highest number of shootings were  `r sum_table_top_4`, and `r sum_table_num_5`. While California and Illinois had the same number of shootings, California had almost double the number of lives lost. California and Illinois each had `r highest_num_shootings` shootings in 2018, which was the highest of all the states.
+```{r sum_table, echo=FALSE}
+
+kable(summary_table)
+```
+  
+## Shooting in Ponder, Texas
+  There was one particular incident that took place in `r incident_city`, `r incident_state` on `r incident_date`. A mother, her boyfriend, and her 3 children were at their home at `r incident_location`, when her ex-husband arrived. Unfortunately, there was a total of `r incident_num_killed` people who were killed and `r incident_num_injured` person who was injured in a murder-suicide. According to `r external_website`, the ex-husband injured the mom, killed the 3 children and the mom's boyfriend, and then killed himself. The mother was the _only_ survivor of the incident.
+    
+  The map below offers a visualization for the locations of the shootings in the United States. This map also makes it easier to compare the number of lives lost in each shooting.
+```{r map, echo=FALSE, warning = FALSE}
+plot_geo(
+  data = mass_shootings_2018,
+  locationmode = "USA-states") %>%
+  layout(
+    title = "Locations of 2018 Mass Shootings in the US",
+    geo = geo_info
+  ) %>%
+  add_markers(
+    sizes = c(2, 400),
+    x = ~long,
+    y = ~lat,
+    size = ~num_killed,
+    text = ~text_info,
+    color = ~num_killed,
+    size = ~num_killed,
+    opacity = 1.0,
+    hoverinfo = "text"
+  ) %>%
+  colorbar(title = "Number of people killed")
+```
+
+This map reveals that while there seem to have been almost no mass shootings throughout the Rocky Mountain states, the East Cost had a relatively heavy concentration. The map also shows the shootings that had the most lives lost, the most being in Pompana Beach.
+
+A question that arises when looking at this data might be "What was the month with the most people injured?" The plot below clearly shows that `r month_most_injured` had `r month_most_injured_num` people who got injured, making it the month with the most people injured. This plot also shows the trend in the amount of people injured throughout the year. Specifically, it shows a spike in the totals during the summer months of the year, when there is usually hotter weather.
+
+```{r month_plot, echo = FALSE, warning = FALSE}
+by_month_plot <- ggplot(month_plot_df) +
+  geom_col(mapping = aes(
+    x = factor(month_abb, levels = month_factor),
+    y = injured,
+    text = paste("Injured:", injured))) +
+  labs(
+    title = "Total People Injured In Each Month",
+    x = "Month",
+    y = "Amount Injured"
+  )
+
+ggplotly(by_month_plot, tooltip = "text")
+```
+
+Comparatively, there also seems to be a dip in the amount of people injured during the _winter_ months, especially in November and December. 
